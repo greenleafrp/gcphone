@@ -1,6 +1,6 @@
 <template>
   <div class="contact">
-    <list :list='lcontacts' :disable="disableList" :title="IntlString('APP_CONTACT_TITLE')" @back="back" @select='onSelect' @option='onOption'></list>
+    <list :list='lcontacts' :disable="disableList" :title="IntlString('APP_CONTACT_TITLE')" @select='onSelect' @option='onOption'></list>
   </div>
 </template>
 
@@ -20,8 +20,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['IntlString', 'contacts', 'useMouse']),
-    lcontacts () {
+    ...mapGetters(['IntlString', 'contacts']),
+    lcontacts: function () {
       let addContact = {display: this.IntlString('APP_CONTACT_NEW'), letter: '+', num: '', id: -1}
       return [addContact, ...this.contacts.map(e => {
         e.backgroundColor = e.backgroundColor || generateColorForStr(e.number)
@@ -30,14 +30,14 @@ export default {
     }
   },
   methods: {
-    onSelect (contact) {
+    onSelect: function (contact) {
       if (contact.id === -1) {
         this.$router.push({ name: 'contacts.view', params: { id: contact.id } })
       } else {
         this.$router.push({ name: 'messages.view', params: { number: contact.number, display: contact.display } })
       }
     },
-    onOption (contact) {
+    onOption: function (contact) {
       if (contact.id === -1 || contact.id === undefined) return
       this.disableList = true
       Modal.CreateModal({
@@ -52,18 +52,16 @@ export default {
         this.disableList = false
       })
     },
-    back () {
+    back: function () {
       if (this.disableList === true) return
       this.$router.push({ name: 'home' })
     }
   },
-  created () {
-    if (!this.useMouse) {
-      this.$bus.$on('keyUpBackspace', this.back)
-    }
+  created: function () {
+    this.$bus.$on('keyUpBackspace', this.back)
   },
 
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpBackspace', this.back)
   }
 }

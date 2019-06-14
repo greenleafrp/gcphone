@@ -2,27 +2,24 @@
   <div class="phone_app">
     <div class="elements">
         <div class="element" :class="{'active': selectIndex === key}" v-for='(histo, key) in historique' :key="key"
-          @click.stop="selectItem(histo)"
           >
-            <div @click.stop="selectItem(histo)" class="elem-pic" :style="stylePuce(histo)">{{histo.letter}}</div>
-            <div @click.stop="selectItem(histo)" class="elem-content">
-              <div @click.stop="selectItem(histo)" class="elem-content-p">{{histo.display}}</div>
-              <div @click.stop="selectItem(histo)" class="elem-content-s">
-                <div 
-                    @click.stop="selectItem(histo)"
-                    class="elem-histo-pico" 
+            <div class="elem-pic" :style="stylePuce(histo)">{{histo.letter}}</div>
+            <div class="elem-content">
+              <div class="elem-content-p">{{histo.display}}</div>
+              <div class="elem-content-s">
+                <div class="elem-histo-pico" 
                     :class="{'reject': hc.accept === false}" 
                     v-for="(hc, i) in histo.lastCall" :key="i">
-                    <svg @click.stop="selectItem(histo)" v-if="hc.accepts === 1 && hc.incoming === 1" viewBox="0 0 24 24" fill="#43a047">
+                    <svg v-if="hc.accepts === 1 && hc.incoming === 1" viewBox="0 0 24 24" fill="#43a047">
                       <path d="M9,5v2h6.59L4,18.59L5.41,20L17,8.41V15h2V5H9z"/>
                     </svg>
-                    <svg @click.stop="selectItem(histo)" v-else-if="hc.accepts === 1 && hc.incoming === 0" viewBox="0 0 24 24" fill="#43a047">
+                    <svg v-else-if="hc.accepts === 1 && hc.incoming === 0" viewBox="0 0 24 24" fill="#43a047">
                       <path d="M20,5.41L18.59,4L7,15.59V9H5v10h10v-2H8.41L20,5.41z"/>
                     </svg>
-                    <svg @click.stop="selectItem(histo)" v-else-if="hc.accepts === 0 && hc.incoming === 1" viewBox="0 0 24 24" fill="#D32F2F">
-                      <path @click.stop="selectItem(histo)" d="M3,8.41l9,9l7-7V15h2V7h-8v2h4.59L12,14.59L4.41,7L3,8.41z"/>
+                    <svg v-else-if="hc.accepts === 0 && hc.incoming === 1" viewBox="0 0 24 24" fill="#D32F2F">
+                      <path d="M3,8.41l9,9l7-7V15h2V7h-8v2h4.59L12,14.59L4.41,7L3,8.41z"/>
                     </svg>
-                    <svg @click.stop="selectItem(histo)" v-else-if="hc.accepts === 0 && hc.incoming === 0" viewBox="0 0 24 24" fill="#D32F2F">
+                    <svg v-else-if="hc.accepts === 0 && hc.incoming === 0" viewBox="0 0 24 24" fill="#D32F2F">
                       <path d="M19.59,7L12,14.59L6.41,9H11V7H3v8h2v-4.59l7,7l9-9L19.59,7z"/>
                     </svg>
                 </div>
@@ -32,8 +29,8 @@
                 </div>
               </div>
             </div>
-            <div class="elem-icon" @click.stop="selectItem(histo)">
-              <i class="fa fa-phone" @click.stop="selectItem(histo)"></i>
+            <div class="elem-icon">
+              <i class="fa fa-phone"></i>
             </div>
         </div>
     </div>
@@ -75,20 +72,21 @@ export default {
       this.selectIndex = Math.min(this.historique.length - 1, this.selectIndex + 1)
       this.scrollIntoViewIfNeeded()
     },
-    async selectItem (item) {
-      const numero = item.num
+    async onEnter () {
+      if (this.ignoreControls === true) return
+      const numero = this.historique[this.selectIndex].num
       const isValid = numero.startsWith('#') === false
       this.ignoreControls = true
       let choix = [
-        {id: 1, title: this.IntlString('APP_PHONE_DELETE'), icons: 'fa-trash', color: 'orange'},
-        {id: 2, title: this.IntlString('APP_PHONE_DELETE_ALL'), icons: 'fa-trash', color: 'red'},
+        {id: 1, title: this.IntlString('APP_PHONE_DELETE'), icons: 'fa-circle-o', color: 'orange'},
+        {id: 2, title: this.IntlString('APP_PHONE_DELETE_ALL'), icons: 'fa-circle-o', color: 'red'},
         {id: 3, title: this.IntlString('CANCEL'), icons: 'fa-undo'}
       ]
       if (isValid === true) {
-        choix = [{id: 0, title: this.IntlString('APP_PHONE_CALL'), icons: 'fa-phone'}, ...choix]
+        choix = [{id: 0, title: this.IntlString('APP_PHONE_CALL'), icons: 'fa-call-o'}, ...choix]
       }
       const rep = await Modal.CreateModal({ choix })
-      this.ignoreControls = false
+      this.ignoreControls = true
       switch (rep.id) {
         case 0:
           this.startCall({ numero })
@@ -99,10 +97,6 @@ export default {
         case 2 :
           this.appelsDeleteAllHistorique()
       }
-    },
-    async onEnter () {
-      if (this.ignoreControls === true) return
-      this.selectItem(this.historique[this.selectIndex])
     },
     stylePuce (data) {
       data = data || {}
@@ -121,7 +115,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['IntlString', 'useMouse', 'appelsHistorique', 'contacts']),
+    ...mapGetters(['IntlString', 'appelsHistorique', 'contacts']),
     historique () {
       let grpHist = groupBy(this.appelsHistorique, 'num')
       let hist = []
@@ -149,16 +143,12 @@ export default {
       return hist
     }
   },
-  created () {
-    if (!this.useMouse) {
-      this.$bus.$on('keyUpArrowDown', this.onDown)
-      this.$bus.$on('keyUpArrowUp', this.onUp)
-      this.$bus.$on('keyUpEnter', this.onEnter)
-    } else {
-      this.selectIndex = -1
-    }
+  created: function () {
+    this.$bus.$on('keyUpArrowDown', this.onDown)
+    this.$bus.$on('keyUpArrowUp', this.onUp)
+    this.$bus.$on('keyUpEnter', this.onEnter)
   },
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpArrowDown', this.onDown)
     this.$bus.$off('keyUpArrowUp', this.onUp)
     this.$bus.$off('keyUpEnter', this.onEnter)
@@ -183,7 +173,7 @@ export default {
     border-radius: 2px;
     box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
   }
-  .active, .element:hover {
+  .active.active {
     background: radial-gradient(rgba(3, 168, 244, 0.14), rgba(3, 169, 244, 0.26));
   }
   .elem-pic{

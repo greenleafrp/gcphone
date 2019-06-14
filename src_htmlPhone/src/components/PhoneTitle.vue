@@ -1,10 +1,7 @@
 <template>
   <div class="phone_title_content" :style="style" :class="{'hasInfoBare': showInfoBare}" >
     <InfoBare v-if="showInfoBare" />
-    <div class="phone_title" :style="{backgroundColor: backgroundColor}">
-      <button class="btn-back" @click.stop="back"><i class="fa fa-arrow-left" @click.stop="back"></i></button>
-      {{title}}
-    </div>
+    <div class="phone_title" :style="{backgroundColor: backgroundColor}">{{title}}</div>
   </div>
 </template>
 <script>
@@ -22,11 +19,6 @@ export default {
         backgroundColor: this.backgroundColor || this.themeColor,
         color: this.color || '#FFF'
       }
-    }
-  },
-  methods: {
-    back () {
-      this.$emit('back')
     }
   },
   props: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="screen" @click="onBackspace">
+  <div class="screen">
     <div class='elements'>
       <img class="logo_maze" src="/html/static/img/app_bank/logo_mazebank.jpg">
       <div class="hr"></div>
@@ -27,14 +27,14 @@ export default {
     }
   },
   methods: {
-    onBackspace () {
+    onBackspace: function () {
       this.$router.push({ name: 'home' })
     }
   },
-  created () {
+  created: function () {
     this.$bus.$on('keyUpBackspace', this.onBackspace)
   },
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpBackspace', this.onBackspace)
   }
 }

@@ -42,10 +42,10 @@ export default {
       })]
     }
   },
-  created () {
+  created: function () {
 
   },
-  beforeDestroy () {
+  beforeDestroy: function () {
   }
 }
 </script>

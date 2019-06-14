@@ -1,13 +1,12 @@
 <template>
   <div class="contact">
-    <list :list='lcontacts' :title="IntlString('APP_MESSAGE_CONTACT_TITLE')" v-on:select="onSelect" @back="back"></list>
+    <list :list='lcontacts' :title="IntlString('APP_MESSAGE_CONTACT_TITLE')" v-on:select="onSelect"></list>
   </div>
 </template>
 
 <script>
 import List from './../List.vue'
 import { mapGetters } from 'vuex'
-import Modal from '@/components/Modal/index.js'
 
 export default {
   components: {
@@ -18,8 +17,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['IntlString', 'contacts', 'useMouse']),
-    lcontacts () {
+    ...mapGetters(['IntlString', 'contacts']),
+    lcontacts: function () {
       let addContact = {
         display: this.IntlString('APP_MESSAGE_CONTRACT_ENTER_NUMBER'),
         letter: '+',
@@ -30,10 +29,9 @@ export default {
     }
   },
   methods: {
-    onSelect (contact) {
+    onSelect: function (contact) {
       if (contact.num === -1) {
-        Modal.CreateTextModal({
-          title: this.IntlString('APP_PHONE_ENTER_NUMBER'),
+        this.$phoneAPI.getReponseText({
           limit: 10
         }).then(data => {
           let message = data.text.trim()
@@ -51,15 +49,15 @@ export default {
         this.$router.push({name: 'messages.view', params: contact})
       }
     },
-    back () {
+    back: function () {
       history.back()
     }
   },
-  created () {
+  created: function () {
     this.$bus.$on('keyUpBackspace', this.back)
   },
 
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpBackspace', this.back)
   }
 }

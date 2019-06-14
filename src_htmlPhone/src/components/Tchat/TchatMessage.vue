@@ -1,6 +1,6 @@
 <template>
   <div class="phone_app">
-    <PhoneTitle :title="channelName" backgroundColor="#090f20" @back="onQuit"/>
+    <PhoneTitle :title="channelName" backgroundColor="#090f20" />
     <div class="phone_content">
       <div class="elements" ref="elementsDiv">
           <div class="element" v-for='(elem) in tchatMessages' 
@@ -14,8 +14,8 @@
       </div>
 
       <div class='tchat_write'>
-          <input type="text" placeholder="..." v-model="message" @keyup.enter.prevent="sendMessage">
-          <span class='tchat_send' @click="sendMessage">></span>
+          <input type="text" placeholder="Envoyer un message">
+          <span class='tchat_send'>></span>
       </div>
     </div>
   </div>
@@ -29,13 +29,12 @@ export default {
   components: { PhoneTitle },
   data () {
     return {
-      message: '',
       channel: '',
       currentSelect: 0
     }
   },
   computed: {
-    ...mapGetters(['tchatMessages', 'tchatCurrentChannel', 'useMouse']),
+    ...mapGetters(['tchatMessages', 'tchatCurrentChannel']),
     channelName () {
       return '# ' + this.channel
     }
@@ -80,21 +79,7 @@ export default {
         }
       }
     },
-    sendMessage () {
-      const message = this.message.trim()
-      if (message.length !== 0) {
-        this.tchatSendMessage({
-          channel: this.channel,
-          message
-        })
-        this.message = ''
-      }
-    },
     onBack () {
-      if (this.useMouse === true && document.activeElement.tagName !== 'BODY') return
-      this.onQuit()
-    },
-    onQuit () {
       this.$router.push({ name: 'tchat.channel' })
     },
     formatTime (time) {
@@ -102,14 +87,10 @@ export default {
       return d.toLocaleTimeString()
     }
   },
-  created () {
-    if (!this.useMouse) {
-      this.$bus.$on('keyUpArrowDown', this.onDown)
-      this.$bus.$on('keyUpArrowUp', this.onUp)
-      this.$bus.$on('keyUpEnter', this.onEnter)
-    } else {
-      this.currentSelect = -1
-    }
+  created: function () {
+    this.$bus.$on('keyUpArrowDown', this.onDown)
+    this.$bus.$on('keyUpArrowUp', this.onUp)
+    this.$bus.$on('keyUpEnter', this.onEnter)
     this.$bus.$on('keyUpBackspace', this.onBack)
     this.setChannel(this.$route.params.channel)
   },
@@ -118,7 +99,7 @@ export default {
     const c = this.$refs.elementsDiv
     c.scrollTop = c.scrollHeight
   },
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpArrowDown', this.onDown)
     this.$bus.$off('keyUpArrowUp', this.onUp)
     this.$bus.$off('keyUpEnter', this.onEnter)
@@ -160,6 +141,7 @@ export default {
 }
 
 .message{
+
   width: 100%;
   color: #FFC629;
 }

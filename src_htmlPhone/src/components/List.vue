@@ -1,6 +1,6 @@
 <template>
   <div class="phone_app">
-    <PhoneTitle :title="title" :showInfoBare="showInfoBare" v-if="showHeader" @back="back"/>
+    <PhoneTitle :title="title" :showInfoBare="showInfoBare" v-if="showHeader"/>
     <!-- <InfoBare v-if="showInfoBare"/>
     <div v-if="title !== ''" class="phone_title" v-bind:style="styleTitle()">{{title}}</div>
     -->
@@ -8,16 +8,14 @@
         <div class="element" v-for='(elem, key) in list' 
           v-bind:key="elem[keyDispay]"
           v-bind:class="{ select: key === currentSelect}"
-          @click.stop="selectItem(elem)"
-          @contextmenu.prevent="optionItem(elem)"
           >
-            <div class="elem-pic" v-bind:style="stylePuce(elem)" @click.stop="selectItem(elem)">
+            <div class="elem-pic" v-bind:style="stylePuce(elem)">
               {{elem.letter || elem[keyDispay][0]}}
             </div>
-            <div @click.stop="selectItem(elem)" v-if="elem.puce !== undefined && elem.puce !== 0" class="elem-puce">{{elem.puce}}</div>
-            <div @click.stop="selectItem(elem)" v-if="elem.keyDesc === undefined || elem.keyDesc === ''" class="elem-title">{{elem[keyDispay]}}</div>
-            <div @click.stop="selectItem(elem)" v-if="elem.keyDesc !== undefined && elem.keyDesc !== ''" class="elem-title-has-desc">{{elem[keyDispay]}}</div>
-            <div @click.stop="selectItem(elem)" v-if="elem.keyDesc !== undefined && elem.keyDesc !== ''" class="elem-description">{{elem.keyDesc}}</div>
+            <div v-if="elem.puce !== undefined && elem.puce !== 0" class="elem-puce">{{elem.puce}}</div>
+            <div v-if="elem.keyDesc === undefined || elem.keyDesc === ''" class="elem-title">{{elem[keyDispay]}}</div>
+            <div v-if="elem.keyDesc !== undefined && elem.keyDesc !== ''" class="elem-title-has-desc">{{elem[keyDispay]}}</div>
+            <div v-if="elem.keyDesc !== undefined && elem.keyDesc !== ''" class="elem-description">{{elem.keyDesc}}</div>
         </div>
     </div>
   </div>
@@ -26,8 +24,6 @@
 <script>
 import PhoneTitle from './PhoneTitle'
 import InfoBare from './InfoBare'
-import { mapGetters } from 'vuex'
-
 export default {
   name: 'hello',
   components: {
@@ -82,7 +78,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['useMouse'])
   },
   methods: {
     styleTitle: function () {
@@ -121,15 +116,6 @@ export default {
       this.currentSelect = this.currentSelect === this.list.length - 1 ? 0 : this.currentSelect + 1
       this.scrollIntoViewIfNeeded()
     },
-    selectItem (item) {
-      this.$emit('select', item)
-    },
-    optionItem (item) {
-      this.$emit('option', item)
-    },
-    back () {
-      this.$emit('back')
-    },
     onRight: function () {
       if (this.disable === true) return
       this.$emit('option', this.list[this.currentSelect])
@@ -140,14 +126,10 @@ export default {
     }
   },
   created: function () {
-    if (!this.useMouse) {
-      this.$bus.$on('keyUpArrowDown', this.onDown)
-      this.$bus.$on('keyUpArrowUp', this.onUp)
-      this.$bus.$on('keyUpArrowRight', this.onRight)
-      this.$bus.$on('keyUpEnter', this.onEnter)
-    } else {
-      this.currentSelect = -1
-    }
+    this.$bus.$on('keyUpArrowDown', this.onDown)
+    this.$bus.$on('keyUpArrowUp', this.onUp)
+    this.$bus.$on('keyUpArrowRight', this.onRight)
+    this.$bus.$on('keyUpEnter', this.onEnter)
   },
   beforeDestroy: function () {
     this.$bus.$off('keyUpArrowDown', this.onDown)
@@ -176,7 +158,7 @@ export default {
   position: relative;
 }
 
-.element.select, .element:hover {
+.element.select{
    background-color: #DDD;
 }
 

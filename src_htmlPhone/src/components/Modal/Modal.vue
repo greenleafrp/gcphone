@@ -1,17 +1,13 @@
 <template>
 <transition name="modal">
-    <div
-      class="modal-mask"
-      @click.stop="cancel">
+    <div class="modal-mask">
 
         <div class="modal-container">
             <div class="modal-choix" 
               v-bind:class="{ select: index === currentSelect}" 
               v-for="(val, index) in choix" :key='index'
-              v-bind:style="{color: val.color}"
-              @click.stop="selectItem(val)"
-            >
-                <i @click.stop="selectItem(val)" class="fas" :class="val.icons" ></i>{{val.title}}
+              v-bind:style="{color: val.color}">
+                <i class="fa" :class="val.icons" ></i>{{val.title}}
             </div>
           
 
@@ -21,13 +17,9 @@
 </template>
 
 <script>
-import store from './../../store'
-import { mapGetters } from 'vuex'
-
 export default {
   name: 'Modal',
-  store: store,
-  data () {
+  data: function () {
     return {
       currentSelect: 0
     }
@@ -35,47 +27,39 @@ export default {
   props: {
     choix: {
       type: Array,
-      default: () => []
+      default: function () {
+        return []
+      }
     }
   },
-  computed: {
-    ...mapGetters(['useMouse'])
-  },
   methods: {
-    scrollIntoViewIfNeeded () {
+    scrollIntoViewIfNeeded: function () {
       this.$nextTick(() => {
         document.querySelector('.modal-choix.select').scrollIntoViewIfNeeded()
       })
     },
-    onUp () {
+    onUp: function () {
       this.currentSelect = this.currentSelect === 0 ? 0 : this.currentSelect - 1
       this.scrollIntoViewIfNeeded()
     },
-    onDown () {
+    onDown: function () {
       this.currentSelect = this.currentSelect === this.choix.length - 1 ? this.currentSelect : this.currentSelect + 1
       this.scrollIntoViewIfNeeded()
     },
-    selectItem (elem) {
-      this.$emit('select', elem)
-    },
-    onEnter () {
+    onEnter: function () {
       this.$emit('select', this.choix[this.currentSelect])
     },
-    cancel () {
+    cancel: function () {
       this.$emit('cancel')
     }
   },
-  created () {
-    if (!this.useMouse) {
-      this.$bus.$on('keyUpArrowDown', this.onDown)
-      this.$bus.$on('keyUpArrowUp', this.onUp)
-      this.$bus.$on('keyUpEnter', this.onEnter)
-    } else {
-      this.currentSelect = -1
-    }
+  created: function () {
+    this.$bus.$on('keyUpArrowDown', this.onDown)
+    this.$bus.$on('keyUpArrowUp', this.onUp)
+    this.$bus.$on('keyUpEnter', this.onEnter)
     this.$bus.$on('keyUpBackspace', this.cancel)
   },
-  beforeDestroy () {
+  beforeDestroy: function () {
     this.$bus.$off('keyUpArrowDown', this.onDown)
     this.$bus.$off('keyUpArrowUp', this.onUp)
     this.$bus.$off('keyUpEnter', this.onEnter)
@@ -126,7 +110,7 @@ export default {
         font-weight: 400;
         font-size: 22px;
     }
-    .modal-choix .fa, .modal-choix .fas {
+    .modal-choix .fa {
         font-size: 18px;
         line-height: 24px;
         margin-left: 12px;
@@ -140,7 +124,7 @@ export default {
         background-position-y: 100%;
         height: 42px;
     }
-    .modal-choix.select, .modal-choix:hover {
+    .modal-choix.select {
         background-color: #E3E3E3;
         color: #42B2DC;
     }
