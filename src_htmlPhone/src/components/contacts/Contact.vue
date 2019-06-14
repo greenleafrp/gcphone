@@ -1,29 +1,29 @@
 <template>
   <div class="phone_app">
-    <PhoneTitle :title="contact.display" />  
+    <PhoneTitle :title="contact.display" @back="forceCancel"/>  
     <div class='phone_content content inputText'>
         
         <div class="group select" data-type="text" data-model='display' data-maxlength = '64'>      
-            <input type="text" v-model="contact.display">
+            <input type="text" v-model="contact.display" maxlength="64" v-autofocus>
             <span class="highlight"></span>
             <span class="bar"></span>
             <label>{{ IntlString('APP_CONTACT_LABEL_NAME') }}</label>
         </div>
         
         <div class="group inputText" data-type="text" data-model='number' data-maxlength='10'>      
-            <input type="text" v-model="contact.number">
+            <input type="text" v-model="contact.number" maxlength="10">
             <span class="highlight"></span>
             <span class="bar"></span>
             <label>{{ IntlString('APP_CONTACT_LABEL_NUMBER') }}</label>
         </div>
-        <div style="margin-top: 56px;" class="group " data-type="button" data-action='save'>      
-            <input type='button' class="btn btn-green" :value="IntlString('APP_CONTACT_SAVE')" />
+        <div style="margin-top: 56px;" class="group " data-type="button" data-action='save' @click.stop="save">      
+            <input type='button' class="btn btn-green" :value="IntlString('APP_CONTACT_SAVE')" @click.stop="save"/>
         </div>
-        <div class="group" data-type="button" data-action='cancel'>      
-            <input type='button' class="btn btn-orange" :value="IntlString('APP_CONTACT_CANCEL')" />
+        <div class="group" data-type="button" data-action='cancel' @click.stop="forceCancel">      
+            <input type='button' class="btn btn-orange" :value="IntlString('APP_CONTACT_CANCEL')" @click.stop="forceCancel"/>
         </div>
-        <div class="group" data-type="button" data-action='delete'>      
-            <input type='button' class="btn btn-red" :value="IntlString('APP_CONTACT_DELETE')" />
+        <div class="group" data-type="button" data-action='deleteC' @click.stop="deleteC">      
+            <input type='button' class="btn btn-red" :value="IntlString('APP_CONTACT_DELETE')" @click.stop="deleteC"/>
         </div>
     </div>
   </div>
@@ -50,9 +50,12 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters(['IntlString', 'contacts', 'useMouse'])
+  },
   methods: {
     ...mapActions(['updateContact', 'addContact']),
-    onUp: function () {
+    onUp () {
       if (this.ignoreControls === true) return
       let select = document.querySelector('.group.select')
       if (select.previousElementSibling !== null) {
@@ -66,7 +69,7 @@ export default {
         }
       }
     },
-    onDown: function () {
+    onDown () {
       if (this.ignoreControls === true) return
       let select = document.querySelector('.group.select')
       if (select.nextElementSibling !== null) {
@@ -80,7 +83,7 @@ export default {
         }
       }
     },
-    onEnter: function () {
+    onEnter () {
       if (this.ignoreControls === true) return
       let select = document.querySelector('.group.select')
       if (select.dataset.type === 'text') {
@@ -96,7 +99,7 @@ export default {
         this[select.dataset.action]()
       }
     },
-    save: function () {
+    save () {
       if (this.id !== -1) {
         this.updateContact({
           id: this.id,
@@ -111,11 +114,15 @@ export default {
       }
       history.back()
     },
-    cancel: function () {
+    cancel () {
       if (this.ignoreControls === true) return
+      if (this.useMouse === true && document.activeElement.tagName !== 'BODY') return
       history.back()
     },
-    delete: function () {
+    forceCancel () {
+      history.back()
+    },
+    deleteC () {
       if (this.id !== -1) {
         this.ignoreControls = true
         let choix = [{title: 'Annuler'}, {title: 'Annuler'}, {title: 'Supprimer', color: 'red'}, {title: 'Annuler'}, {title: 'Annuler'}]
@@ -131,20 +138,25 @@ export default {
       }
     }
   },
-  computed: {
-    ...mapGetters(['IntlString', 'contacts'])
-  },
-  created: function () {
-    this.$bus.$on('keyUpArrowDown', this.onDown)
-    this.$bus.$on('keyUpArrowUp', this.onUp)
-    this.$bus.$on('keyUpEnter', this.onEnter)
+  created () {
+    if (!this.useMouse) {
+      this.$bus.$on('keyUpArrowDown', this.onDown)
+      this.$bus.$on('keyUpArrowUp', this.onUp)
+      this.$bus.$on('keyUpEnter', this.onEnter)
+    } else {
+      this.currentSelect = -1
+    }
     this.$bus.$on('keyUpBackspace', this.cancel)
     this.id = parseInt(this.$route.params.id)
     this.contact.display = this.IntlString('APP_CONTACT_NEW')
     if (this.id !== -1) {
       const c = this.contacts.find(e => e.id === this.id)
       if (c !== undefined) {
-        this.contact = c
+        this.contact = {
+          id: c.id,
+          display: c.display,
+          number: c.number
+        }
       }
     }
   },
@@ -283,7 +295,7 @@ input:focus ~ .highlight {
   font-weight: 500;
   border-radius: 10px;
 }
-.group.select .btn.btn-green{
+.group.select .btn.btn-green, .group:hover .btn.btn-green{
   background-color: #2ecc70;
   color: white;
   border: none;
@@ -295,7 +307,7 @@ input:focus ~ .highlight {
   font-weight: 500;
   border-radius: 10px;
 }
-.group.select .btn.btn-orange{
+.group.select .btn.btn-orange, .group:hover .btn.btn-orange{
   background-color: #e67e22;
   color: white;
   border: none;
@@ -308,7 +320,7 @@ input:focus ~ .highlight {
   font-weight: 500;
   border-radius: 10px;
 }
-.group.select .btn.btn-red{
+.group.select .btn.btn-red, .group:hover .btn.btn-red{
   background-color: #e74c3c;
   color: white;
   border: none;

@@ -1,12 +1,15 @@
 <template>
-<div v-if="show === true" :style="{zoom: zoom}">
-  <div class="phone_wrapper">
-    <div class="phone_coque" :style="{backgroundImage: 'url(/html/static/img/coque/' + coque.value + ')'}"></div>
-    <div id="app" class="phone_screen">
-      <router-view></router-view>
+  <div style="height: 100vh; width: 100vw;" @contextmenu="closePhone">
+    <notification />
+    <div v-if="show === true && tempoHide === false" :style="{zoom: zoom}" @contextmenu.stop>
+      <div class="phone_wrapper">
+        <div class="phone_coque" :style="{backgroundImage: 'url(/html/static/img/coque/' + coque.value + ')'}"></div>
+        <div id="app" class="phone_screen">
+          <router-view></router-view>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -24,10 +27,13 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['loadConfig', 'rejectCall'])
+    ...mapActions(['loadConfig', 'rejectCall']),
+    closePhone () {
+      this.$phoneAPI.closePhone()
+    }
   },
   computed: {
-    ...mapGetters(['show', 'zoom', 'coque', 'appelsInfo', 'myPhoneNumber', 'volume'])
+    ...mapGetters(['show', 'zoom', 'coque', 'appelsInfo', 'myPhoneNumber', 'volume', 'tempoHide'])
   },
   watch: {
     appelsInfo (newValue, oldValue) {
@@ -66,7 +72,7 @@ export default {
       }
     }
   },
-  mounted: function () {
+  mounted () {
     this.loadConfig()
     window.addEventListener('message', (event) => {
       if (event.data.keyUp !== undefined) {
@@ -77,6 +83,9 @@ export default {
       const keyValid = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Backspace', 'Enter']
       if (keyValid.indexOf(event.key) !== -1) {
         this.$bus.$emit('keyUp' + event.key)
+      }
+      if (event.key === 'Escape') {
+        this.$phoneAPI.closePhone()
       }
     })
   }

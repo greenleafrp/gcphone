@@ -1,12 +1,11 @@
 <template>
   <div class="phone_app">
-    <PhoneTitle :title="'9 GAG (' + currentSelectPost + ')'" backgroundColor="#000"/>  
-    <div class='phone_content'>
+    <PhoneTitle :title="'9 GAG (' + currentSelectPost + ')'" backgroundColor="#000" @back="quit"/>  
+    <div class='phone_content' @click="onClick">
       <div class="post" v-if="currentPost !== undefined">
         <h1 class="post-title">{{ currentPost.title }}</h1>
         <div class="post-content">
           <video class="post-video" ref="video" v-if="currentPost.images.image460svwm !== undefined" autoplay loop :src="currentPost.images.image460svwm.url">
-
           </video>
           <img class="post-image" v-else :src="currentPost.images.image460.url" alt="">
         </div>
@@ -29,6 +28,15 @@ export default {
       nextCursor: 'c=10',
       currentSelectPost: 0,
       posts: []
+    }
+  },
+  computed: {
+    currentPost () {
+      if (this.posts && this.posts.length > this.currentSelectPost) {
+        return this.posts[this.currentSelectPost]
+      }
+      this.loadItems()
+      return undefined
     }
   },
   methods: {
@@ -58,28 +66,26 @@ export default {
         }
       }, 200)
     },
-    cancel: function () {
-      this.$router.push({ name: 'home' })
-    }
-  },
-  computed: {
-    currentPost () {
-      if (this.posts && this.posts.length > this.currentSelectPost) {
-        return this.posts[this.currentSelectPost]
+    onClick ($event) {
+      if ($event.offsetX < 200) {
+        this.previewPost()
+      } else {
+        this.nextPost()
       }
-      this.loadItems()
-      return undefined
+    },
+    quit: function () {
+      this.$router.push({ name: 'home' })
     }
   },
   created: function () {
     this.$bus.$on('keyUpArrowLeft', this.previewPost)
     this.$bus.$on('keyUpArrowRight', this.nextPost)
-    this.$bus.$on('keyUpBackspace', this.cancel)
+    this.$bus.$on('keyUpBackspace', this.quit)
   },
   beforeDestroy: function () {
     this.$bus.$off('keyUpArrowLeft', this.previewPost)
     this.$bus.$off('keyUpArrowRight', this.nextPost)
-    this.$bus.$off('keyUpBackspace', this.cancel)
+    this.$bus.$off('keyUpBackspace', this.quit)
   }
 }
 </script>

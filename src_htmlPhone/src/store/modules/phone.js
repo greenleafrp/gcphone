@@ -3,25 +3,32 @@ import PhoneAPI from './../../PhoneAPI'
 
 const state = {
   show: process.env.NODE_ENV !== 'production',
+  tempoHide: false,
   myPhoneNumber: '###-####',
   background: JSON.parse(window.localStorage['gc_background'] || null),
   coque: JSON.parse(window.localStorage['gc_coque'] || null),
   zoom: window.localStorage['gc_zoom'] || '100%',
   volume: parseFloat(window.localStorage['gc_volume']) || 1,
-  lang: window.localStorage['gc_language'] || 'fr_FR',
+  mouse: window.localStorage['gc_mouse'] === 'true',
+  lang: window.localStorage['gc_language'],
   config: {
     reseau: 'Gannon',
     useFormatNumberFrance: false,
     apps: [],
     themeColor: '#2A56C6',
-    colors: ['#2A56C6']
+    colors: ['#2A56C6'],
+    language: {}
   }
 }
 
+PhoneAPI.setUseMouse(state.mouse)
+
 const getters = {
   show: ({ show }) => show,
+  tempoHide: ({ tempoHide }) => tempoHide,
   myPhoneNumber: ({ myPhoneNumber }) => myPhoneNumber,
   volume: ({ volume }) => volume,
+  enableTakePhoto: ({ config }) => config.enableTakePhoto === true,
   background: ({ background, config }) => {
     if (background === null) {
       if (config.background_default !== undefined) {
@@ -55,6 +62,7 @@ const getters = {
   },
   coqueLabel: (state, getters) => getters.coque.label,
   zoom: ({ zoom }) => zoom,
+  useMouse: ({ mouse }) => mouse,
   config: ({ config }) => config,
   warningMessageCount: ({ config }) => config.warningMessageCount || 250,
   useFormatNumberFrance: ({ config }) => config.useFormatNumberFrance,
@@ -80,11 +88,12 @@ const getters = {
     return AvailableLanguage
   },
   IntlString ({ config, lang }) {
+    lang = lang || config.defaultLanguage
     if (config.language[lang] === undefined) {
       return (LABEL) => LABEL
     }
-    return (LABEL) => {
-      return config.language[lang][LABEL] || LABEL
+    return (LABEL, defaultValue) => {
+      return config.language[lang][LABEL] || defaultValue || LABEL
     }
   }
 
@@ -133,6 +142,11 @@ const actions = {
     Vue.prototype.$timeago.setCurrentLocale(lang)
     commit('SET_LANGUAGE', lang)
   },
+  setMouseSupport ({ commit }, value) {
+    window.localStorage['gc_mouse'] = value
+    PhoneAPI.setUseMouse(value)
+    commit('SET_MOUSE_SUPPORT', value)
+  },
   closePhone () {
     PhoneAPI.closePhone()
   },
@@ -157,6 +171,10 @@ const mutations = {
   },
   SET_PHONE_VISIBILITY (state, show) {
     state.show = show
+    state.tempoHide = false
+  },
+  SET_TEMPO_HIDE (state, hide) {
+    state.tempoHide = hide
   },
   SET_MY_PHONE_NUMBER (state, myPhoneNumber) {
     state.myPhoneNumber = myPhoneNumber
@@ -175,6 +193,9 @@ const mutations = {
   },
   SET_LANGUAGE (state, lang) {
     state.lang = lang
+  },
+  SET_MOUSE_SUPPORT (state, value) {
+    state.mouse = value
   }
 }
 
