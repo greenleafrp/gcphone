@@ -2,17 +2,17 @@
   <div class="phone_app">
     <div class="backblur" v-bind:style="{background: 'url(' + backgroundURL +')'}"></div>
     <InfoBare class="infobare"/>
-    <div class="menu">
+    <div class="menu" @click="onBack">
       
       <div class="menu_content">
-        
-
+      
           <div class='menu_buttons'>
             <button 
                 v-for="(but, key) of Apps" 
                 v-bind:key="but.name" 
                 v-bind:class="{ select: key === currentSelect}"
                 v-bind:style="{backgroundImage: 'url(' + but.icons +')'}"
+                @click.stop="openApp(but)"
               >
                 {{but.intlName}}
                 <span class="puce" v-if="but.puce !== undefined && but.puce !== 0">{{but.puce}}</span>
@@ -37,7 +37,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['nbMessagesUnread', 'backgroundURL', 'Apps'])
+    ...mapGetters(['nbMessagesUnread', 'backgroundURL', 'Apps', 'useMouse'])
   },
   methods: {
     ...mapGetters(['closePhone']),
@@ -72,9 +72,11 @@ export default {
       }
       this.currentSelect = newS
     },
-    onEnter: function () {
-      const name = this.Apps[this.currentSelect].routeName
-      this.$router.push({ name })
+    openApp (app) {
+      this.$router.push({ name: app.routeName })
+    },
+    onEnter () {
+      this.openApp(this.Apps[this.currentSelect])
     },
     onBack: function () {
       this.$router.push({ name: 'home' })
@@ -83,11 +85,15 @@ export default {
   mounted () {
   },
   created () {
-    this.$bus.$on('keyUpArrowLeft', this.onLeft)
-    this.$bus.$on('keyUpArrowRight', this.onRight)
-    this.$bus.$on('keyUpArrowDown', this.onDown)
-    this.$bus.$on('keyUpArrowUp', this.onUp)
-    this.$bus.$on('keyUpEnter', this.onEnter)
+    if (!this.useMouse) {
+      this.$bus.$on('keyUpArrowLeft', this.onLeft)
+      this.$bus.$on('keyUpArrowRight', this.onRight)
+      this.$bus.$on('keyUpArrowDown', this.onDown)
+      this.$bus.$on('keyUpArrowUp', this.onUp)
+      this.$bus.$on('keyUpEnter', this.onEnter)
+    } else {
+      this.currentSelect = -1
+    }
     this.$bus.$on('keyUpBackspace', this.onBack)
   },
   beforeDestroy () {
@@ -101,7 +107,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .menu{
   position: relative;
   left: 0;
@@ -185,7 +191,7 @@ button .puce{
   bottom: 32px;
   right: 12px;
 }
-button.select{
+button.select, button:hover{
   background-color: rgba(255,255,255, 0.7);
   border-radius: 12px;
 }
