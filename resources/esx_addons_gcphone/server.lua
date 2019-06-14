@@ -16,14 +16,20 @@ TriggerEvent('esx:getSharedObject', function(obj)
 end)
 
 
-function notifyAlertSMS (number, alert, listSrc)
+function notifyAlertSMS (number, alert, listSrc, anon)
   if PhoneNumbers[number] ~= nil then
     for k, _ in pairs(listSrc) do
       getPhoneNumber(tonumber(k), function (n)
         if n ~= nil then
-          TriggerEvent('gcPhone:_internalAddMessage', number, n, 'De #' .. alert.numero  .. ' : ' .. alert.message, 0, function (smsMess)
-            TriggerClientEvent("gcPhone:receiveMessage", tonumber(k), smsMess)
-          end)
+          if anon then
+            TriggerEvent('gcPhone:_internalAddMessage', number, n, 'Caller # UNKOWN'  .. ' : ' .. alert.message, 0, function (smsMess)
+              TriggerClientEvent("gcPhone:receiveMessage", tonumber(k), smsMess)
+            end)
+          else
+            TriggerEvent('gcPhone:_internalAddMessage', number, n, 'Caller #' .. alert.numero  .. ' : ' .. alert.message, 0, function (smsMess)
+              TriggerClientEvent("gcPhone:receiveMessage", tonumber(k), smsMess)
+            end)
+          end
           if alert.coords ~= nil then
             TriggerEvent('gcPhone:_internalAddMessage', number, n, 'GPS: ' .. alert.coords.x .. ', ' .. alert.coords.y, 0, function (smsMess)
               TriggerClientEvent("gcPhone:receiveMessage", tonumber(k), smsMess)
@@ -38,7 +44,7 @@ end
 
 
 AddEventHandler('esx_phone:registerNumber', function(number, type, sharePos, hasDispatch, hideNumber, hidePosIfAnon)
-  print('==== Enregistrement du telephone ' .. number .. ' => ' .. type)
+  print('==== Phone registration: ' .. number .. ' => ' .. type)
 	local hideNumber    = hideNumber    or false
 	local hidePosIfAnon = hidePosIfAnon or false
 
@@ -70,18 +76,21 @@ end)
 
 
 RegisterServerEvent('esx_addons_gcphone:startCall')
-AddEventHandler('esx_addons_gcphone:startCall', function (number, message, coords)
+AddEventHandler('esx_addons_gcphone:startCall', function (number, message, coords, anon)
   local source = source
+  print(number)
+  print(message)
+  print(dump(coords))
   if PhoneNumbers[number] ~= nil then
     getPhoneNumber(source, function (phone) 
       notifyAlertSMS(number, {
         message = message,
         coords = coords,
         numero = phone,
-      }, PhoneNumbers[number].sources)
+      }, PhoneNumbers[number].sources, anon)
     end)
   else
-    print('Appels sur un service non enregistre => numero : ' .. number)
+    print('Calls on a non-registered service => number: ' .. number)
   end
 end)
 
@@ -126,4 +135,17 @@ function getPhoneNumber (source, callback)
   }, function(result)
     callback(result[1].phone_number)
   end)
+end
+
+function dump(o)
+  if type(o) == 'table' then
+     local s = '{ '
+     for k,v in pairs(o) do
+        if type(k) ~= 'number' then k = '"'..k..'"' end
+        s = s .. '['..k..'] = ' .. dump(v) .. ','
+     end
+     return s .. '} '
+  else
+     return tostring(o)
+  end
 end

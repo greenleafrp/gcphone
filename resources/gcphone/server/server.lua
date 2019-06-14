@@ -112,17 +112,21 @@ end
 --  Contacts
 --====================================================================================
 function getContacts(identifier)
-    local result = MySQL.Sync.fetchAll("SELECT * FROM phone_users_contacts WHERE phone_users_contacts.identifier = @identifier", {
-        ['@identifier'] = identifier
+	local mynumber = getNumberPhone(identifier)
+    local result = MySQL.Sync.fetchAll("SELECT * FROM phone_users_contacts WHERE phone_users_contacts.identifier = @identifier and phone_users_contacts.mynumber = @mynumber", {
+        ['@identifier'] = identifier,
+        ['@mynumber'] = mynumber
     })
     return result
 end
 function addContact(source, identifier, number, display)
     local sourcePlayer = tonumber(source)
-    MySQL.Async.insert("INSERT INTO phone_users_contacts (`identifier`, `number`,`display`) VALUES(@identifier, @number, @display)", {
+	local mynumber = getNumberPhone(identifier)
+    MySQL.Async.insert("INSERT INTO phone_users_contacts (`identifier`,`mynumber`,`display`,`number`) VALUES(@identifier, @mynumber, @display, @number)", {
         ['@identifier'] = identifier,
-        ['@number'] = number,
+        ['@mynumber'] = mynumber,
         ['@display'] = display,
+        ['@number'] = number,
     },function()
         notifyContactChange(sourcePlayer, identifier)
     end)
@@ -261,6 +265,7 @@ AddEventHandler('gcPhone:sendMessage', function(phoneNumber, message)
     local sourcePlayer = tonumber(source)
     local identifier = getPlayerID(source)
     addMessage(sourcePlayer, identifier, phoneNumber, message)
+	print(message)
 end)
 
 RegisterServerEvent('gcPhone:deleteMessage')
@@ -518,48 +523,6 @@ AddEventHandler('gcPhone:appelsDeleteAllHistorique', function ()
     local srcIdentifier = getPlayerID(source)
     appelsDeleteAllHistorique(srcIdentifier)
 end)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 --====================================================================================
 --  OnLoad
 --====================================================================================
@@ -572,6 +535,19 @@ AddEventHandler('es:playerLoaded',function(source)
         TriggerClientEvent("gcPhone:allMessage", sourcePlayer, getMessages(identifier))
     end)
 end)
+
+function allUpdate(source)
+    local sourcePlayer = tonumber(source)
+    local identifier = getPlayerID(source)
+    local num = getNumberPhone(identifier)
+    getOrGeneratePhoneNumber(sourcePlayer, identifier, function (myPhoneNumber)
+        TriggerClientEvent("gcPhone:myPhoneNumber", sourcePlayer, myPhoneNumber)
+        TriggerClientEvent("gcPhone:contactList", sourcePlayer, getContacts(identifier))
+        TriggerClientEvent("gcPhone:allMessage", sourcePlayer, getMessages(identifier))
+    end)
+    TriggerClientEvent('gcPhone:getBourse', sourcePlayer, getBourse())
+    sendHistoriqueCall(sourcePlayer, num)
+end
 
 -- Just For reload
 RegisterServerEvent('gcPhone:allUpdate')
@@ -589,6 +565,30 @@ end)
 
 AddEventHandler('onMySQLReady', function ()
     MySQL.Async.fetchAll("DELETE FROM phone_messages WHERE (DATEDIFF(CURRENT_DATE,time) > 10)")
+end)
+
+-- Just For reload
+RegisterServerEvent('gcPhone:allUpdate')
+AddEventHandler('gcPhone:allUpdate', function()
+    local src = source
+    allUpdate(src)
+end)
+
+-- Reload phone on char switch
+RegisterServerEvent('glrpcharacters:ChangeCharacterPhone')
+AddEventHandler('glrpcharacters:ChangeCharacterPhone', function(Player)
+    allUpdate(Player)
+end)
+
+RegisterServerEvent('glrpcharacters:NewCharacterPhone')
+AddEventHandler('glrpcharacters:NewCharacterPhone', function(Player)
+    local sourcePlayer = tonumber(Player)
+    local identifier = getPlayerID(Player)
+    getOrGeneratePhoneNumber(sourcePlayer, identifier, function (myPhoneNumber)
+        TriggerClientEvent("gcPhone:myPhoneNumber", sourcePlayer, myPhoneNumber)
+        TriggerClientEvent("gcPhone:contactList", sourcePlayer, getContacts(identifier))
+        TriggerClientEvent("gcPhone:allMessage", sourcePlayer, getMessages(identifier))
+    end)
 end)
 
 --====================================================================================

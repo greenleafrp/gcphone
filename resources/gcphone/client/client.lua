@@ -11,7 +11,7 @@ local KeyToucheCloseEvent = {
   { code = 176, event = 'Enter' },
   { code = 177, event = 'Backspace' },
 }
-local KeyOpenClose = 289 -- F2
+local KeyOpenClose = 288 -- F1
 local KeyTakeCall = 38 -- E
 local menuIsOpen = false
 local contacts = {}
@@ -184,7 +184,7 @@ Citizen.CreateThread(function()
   
   while true do
     Citizen.Wait(0)
-    if IsControlJustPressed(1, KeyOpenClose) then
+    if IsControlJustPressed(0, KeyOpenClose) and GetLastInputMethod(2) then
       hasPhone(function (hasPhone)
         if hasPhone == true then
           TooglePhone()
@@ -243,12 +243,12 @@ AddEventHandler("gcPhone:receiveMessage", function(message)
   SendNUIMessage({event = 'newMessage', message = message})
   table.insert(messages, message)
   if message.owner == 0 then
-    local text = '~o~Nouveau message'
+    local text = '~o~New Message'
     if ShowNumberNotification == true then
-      text = '~o~Nouveau message du ~y~'.. message.transmitter
+      text = '~o~New Message From ~y~'.. message.transmitter
       for _,contact in pairs(contacts) do
         if contact.number == message.transmitter then
-          text = '~o~Nouveau message de ~g~'.. contact.display
+          text = '~o~New Message From ~g~'.. contact.display
           break
         end
       end

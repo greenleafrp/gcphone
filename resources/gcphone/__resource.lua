@@ -20,6 +20,23 @@ files {
 	'html/static/img/background/back001.jpg',
 	'html/static/img/background/back002.jpg',
 	'html/static/img/background/back003.jpg',
+	'html/static/img/background/back004.jpg',
+	'html/static/img/background/back005.jpg',
+	'html/static/img/background/back006.jpg',
+	'html/static/img/background/back007.jpg',
+	'html/static/img/background/back008.jpg',
+	'html/static/img/background/back009.jpg',
+	'html/static/img/background/back010.jpg',
+	'html/static/img/background/back011.jpg',
+	'html/static/img/background/back012.jpg',
+	'html/static/img/background/back013.jpg',
+	'html/static/img/background/back014.jpg',
+	'html/static/img/background/back015.jpg',
+	'html/static/img/background/back016.jpg',
+	'html/static/img/background/back017.jpg',
+	'html/static/img/background/back018.jpg',
+	'html/static/img/background/back019.jpg',
+	'html/static/img/background/back020.jpg',
 	
 	'html/static/img/icons_app/call.png',
 	'html/static/img/icons_app/contacts.png',
@@ -31,18 +48,22 @@ files {
 	'html/static/img/icons_app/photo.png',
 	'html/static/img/icons_app/bank.png',
 	'html/static/img/icons_app/9gag.png',
+	'html/static/img/icons_app/twitter.png',
 	
 	'html/static/img/app_bank/logo_mazebank.jpg',
 
 	'html/static/img/app_tchat/splashtchat.png',
+
+	'html/static/img/twitter/bird.png',
+	'html/static/img/twitter/default_profile.png',
+	'html/static/sound/Twitter_Sound_Effect.ogg',
 
 	'html/static/img/courbure.png',
 	'html/static/fonts/fontawesome-webfont.ttf',
 
 	'html/static/sound/ring.ogg',
 	'html/static/sound/tchatNotification.ogg',
-	'html/static/sound/Phone_Call_Sound_Effect.ogg',
-
+	'html/static/sound/Phone_Call_Sound_Effect.ogg'
 }
 
 client_script {
@@ -53,6 +74,7 @@ client_script {
 	"client/photo.lua",
 	"client/app_tchat.lua",
 	"client/bank.lua",
+	"client/twitter.lua"
 }
 
 server_script {
@@ -61,4 +83,5 @@ server_script {
 	"server/server.lua",
 
 	"server/app_tchat.lua",
+	"server/twitter.lua"
 }
