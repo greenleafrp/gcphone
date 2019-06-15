@@ -22,7 +22,7 @@ Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)
 				
-		if IsControlJustPressed(1, 177) and phone == true then -- CLOSE PHONE
+		if (IsControlJustPressed(1, 177) or IsControlJustPressed(1, 25)) and phone == true then -- CLOSE PHONE
 			DestroyMobilePhone()
 			phone = false
 			CellCamActivate(false, false)
