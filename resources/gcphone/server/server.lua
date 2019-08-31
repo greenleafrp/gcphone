@@ -66,12 +66,19 @@ function getNumberPhone(identifier)
     end
     return nil
 end
+
 function getIdentifierByPhoneNumber(phone_number) 
-    local result = MySQL.Sync.fetchAll("SELECT users.identifier FROM users WHERE users.phone_number = @phone_number", {
+    local result = MySQL.Sync.fetchAll('SELECT users.identifier FROM users WHERE users.phone_number = @phone_number', {
         ['@phone_number'] = phone_number
     })
     if result[1] ~= nil then
         return result[1].identifier
+    end
+    local result2 = MySQL.Sync.fetchAll('SELECT characters.identifier FROM characters WHERE characters.phone_number = @phone_number', {
+        ['@phone_number'] = phone_number
+    })
+    if result2[1] ~= nil then
+        return result2[1].identifier
     end
     return nil
 end
@@ -234,10 +241,12 @@ end
 
 function setReadMessageNumber(identifier, num)
     local mePhoneNumber = getNumberPhone(identifier)
-    MySQL.Sync.execute("UPDATE phone_messages SET phone_messages.isRead = 1 WHERE phone_messages.receiver = @receiver AND phone_messages.transmitter = @transmitter", { 
+    MySQL.Async.execute("UPDATE phone_messages SET phone_messages.isRead = 1 WHERE phone_messages.receiver = @receiver AND phone_messages.transmitter = @transmitter", { 
         ['@receiver'] = mePhoneNumber,
         ['@transmitter'] = num
-    })
+    },
+    function(update)
+    end)
 end
 
 function deleteMessage(msgId)
@@ -392,11 +401,13 @@ AddEventHandler('gcPhone:internal_startCall', function(source, phone_number, rtc
     local srcIdentifier = getPlayerID(source)
 
     local srcPhone = ''
+    print(json.encode(extraData))
     if extraData ~= nil and extraData.useNumber ~= nil then
         srcPhone = extraData.useNumber
     else
         srcPhone = getNumberPhone(srcIdentifier)
     end
+    print('CALL WITH NUMBER ' .. srcPhone)
     local destPlayer = getIdentifierByPhoneNumber(phone_number)
     local is_valid = destPlayer ~= nil and destPlayer ~= srcIdentifier
     AppelsEnCours[indexCall] = {
@@ -412,7 +423,6 @@ AddEventHandler('gcPhone:internal_startCall', function(source, phone_number, rtc
         extraData = extraData
     }
     
-
     if is_valid == true then
         getSourceFromIdentifier(destPlayer, function (srcTo)
             if srcTo ~= nill then
@@ -439,14 +449,14 @@ end)
 
 RegisterServerEvent('gcPhone:candidates')
 AddEventHandler('gcPhone:candidates', function (callId, candidates)
-    -- print('send cadidate', callId, candidates)
+    print('send cadidate', callId, candidates)
     if AppelsEnCours[callId] ~= nil then
         local source = source
         local to = AppelsEnCours[callId].transmitter_src
         if source == to then 
             to = AppelsEnCours[callId].receiver_src
         end
-        -- print('TO', to)
+        print('TO', to)
         TriggerClientEvent('gcPhone:candidates', to, candidates)
     end
 end)
@@ -454,6 +464,7 @@ end)
 
 RegisterServerEvent('gcPhone:acceptCall')
 AddEventHandler('gcPhone:acceptCall', function(infoCall, rtcAnswer)
+    Citizen.CreateThread(function()
     local id = infoCall.id
     if AppelsEnCours[id] ~= nil then
         if PhoneFixeInfo[id] ~= nil then
@@ -465,10 +476,12 @@ AddEventHandler('gcPhone:acceptCall', function(infoCall, rtcAnswer)
             AppelsEnCours[id].is_accepts = true
             AppelsEnCours[id].rtcAnswer = rtcAnswer
             TriggerClientEvent('gcPhone:acceptCall', AppelsEnCours[id].transmitter_src, AppelsEnCours[id], true)
+            Citizen.Wait(500)
             TriggerClientEvent('gcPhone:acceptCall', AppelsEnCours[id].receiver_src, AppelsEnCours[id], false)
             saveAppels(AppelsEnCours[id])
         end
     end
+    end)
 end)
 
 
@@ -562,7 +575,7 @@ end)
 
 
 AddEventHandler('onMySQLReady', function ()
-    -- MySQL.Async.fetchAll("DELETE FROM phone_messages WHERE (DATEDIFF(CURRENT_DATE,time) > 10)")
+    MySQL.Async.fetchAll("DELETE FROM phone_messages WHERE (DATEDIFF(CURRENT_DATE,time) > 10)")
 end)
 
 -- Just For reload

@@ -62,7 +62,6 @@ files {
 	'html/static/fonts/fontawesome-webfont.ttf',
 
 	'html/static/sound/ring.ogg',
-	'html/static/sound/ring2.ogg',
 	'html/static/sound/tchatNotification.ogg',
 	'html/static/sound/Phone_Call_Sound_Effect.ogg'
 }
